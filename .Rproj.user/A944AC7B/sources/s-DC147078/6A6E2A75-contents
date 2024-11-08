@@ -1,0 +1,35 @@
+library(PhylogeneticEM)
+
+tree <- ape::read.tree("Squam_100trees.tree")
+
+tree <- tree [[1]]
+
+traits <- read.csv("squamBase_cleaned.csv", header = TRUE)
+
+traits <-  traits[, c("Scientific.Name", "MaxSVL_mm")]   
+
+traits <- traits[!is.na(traits[, 2]), ]
+
+trait <- traits[, 2]
+
+names(trait) <- gsub(" ", "_", traits[, 1])
+
+dat <- geiger::treedata(tree, trait)
+
+tree_model <- dat$phy
+  
+trait_model <- dat$data
+
+trait_model <- t(trait_model)
+
+ord <- colnames(trait_model)[match(tree_model$tip.label, colnames(trait_model))]
+
+trait_model <- matrix(trait_model[, ord], nrow = 1)
+
+colnames(trait_model) <- ord
+
+model <- PhylogeneticEM::PhyloEM(phylo = tree_model,
+                        Y_data = trait_model,
+                        process = "BM"
+                        )
+
